@@ -2,16 +2,37 @@ import numpy as np
 import math
 
 class Distribution:
-    def __init__(self, f, a, b, ndim = 1, normal = False, mu=None, sigma=None, samples = [], nsamples=1000):
-        self.f = f
-        self.a = a
-        self.b = b
-        self.ndim = ndim
-        self.nsamples = nsamples
-        self.samples = samples
-        self.normal = normal
-        self.mu = mu
-        self.sigma = sigma
+    def __init__(self, a = -1, b = 1, *args, **kwargs):
+        if kwargs:
+                #keyword arguments provided
+            if ("normal" in kwargs):
+                self.type = 'normal'
+                if ("samples" in kwargs):
+                    self.samples = kwargs.get("data", [])
+                    self.get_stats()
+                else:
+                    self.mu = kwargs.get("mean", 0.0)
+                    self.sd = kwargs.get('sd', 1.0)
+                    #get mean and sd; default to standard normal value if not given
+                self.f = np.random.normal(loc = self.mu, scale = self.sd)
+            elif ("custom" in kwargs):
+                self.type = 'custom'
+                self.f = kwargs.get("custom", x)
+                self.ndim = kwargs.get("dim", 1.0)
+                if ("samples" in kwargs):
+                    self.samples = kwargs.get("data", [])
+                    if self.samples:
+                        self.gen_samples()
+                        self.get_stats()
+                    else:
+                        self.mu = self.mu = kwargs.get("mean", 0.0)
+                        self.sd = kwargs.get('sd', 1.0)
+            else:
+                raise Error("no keyword arguments provided")
+
+            self.a = a
+            self.b = b
+            self.nsamples = 1000
 
     def generate_distribution(self, p, a, b,ndim=1, mu=None, sigma=None,num_samples=1000):
         distribution = Distribution(p, a, b, ndim, mu, sigma, num_samples)
@@ -22,7 +43,7 @@ class Distribution:
         return self.mu + self.sigma*np.sqrt(-2*np.log(eta))*math.cos(2*math.pi*xi)
 
     def get_stats(self):
-        self.mu, self.sigma = np.mean(self.samples), np.std(self.samples)
+        self.mean, self.sd = np.mean(self.samples), np.std(self.samples)
 
     def gen_samples(self, n = 1000):
         if self.ndim == 1:
@@ -31,9 +52,10 @@ class Distribution:
             self.samples = [self.f(*c) for c in np.random.uniform(self.a, self.b,size = (n, self.ndim))]
         self.get_stats()
 
-    def pdf(self, x):
-        measure = sum([1 if y >= abs(x) else 0 for y in self.samples])
-        return np.log(measure/self.nsamples)
+    def pdf(self, y):
+        curr_expected_value = sum([abs(x) for x in self.samples])
+        measure = 1 - curr_expected_value/y
+        return measure/self.nsamples
 
     def append_sample(self, sample):
         self.samples.append(sample)

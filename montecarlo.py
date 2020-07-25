@@ -4,7 +4,7 @@ from math import e
 
 
 class MonteCarlo:
-        def __init__(self, q = None, p = None, a = 0, b = 1,ndim=1, mu = 0, sigma=1,N=1000):
+        def __init__(self, *args, **kwargs):
             self.a = a
             self.b = b
             self.ndim = ndim
@@ -97,7 +97,6 @@ class MonteCarlo:
                     X.append(x)
                     p.append_sample(x)
             return X
-
 
         def methods(self,method_name):
             return {

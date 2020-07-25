@@ -1,0 +1,81 @@
+import numpy as np
+import scipy.stats as st
+
+class MonteCarlo:
+        def __init__(self,lower=-1,upper=1,ndim=1, proposal = None, target = None, mu = 0, sigma=1):
+            if not proposal:
+                proposal = np.random.uniform(lower, upper)
+            if not target:
+                target = st.norm.truncnorm(lower, upper, mu, sigma)
+            self.a = lower
+            self.b = upper
+            self.ndim = ndim
+            self.sigma = sigma
+            self.mu = mu
+            self.q = proposal
+            self.p = target
+
+        def Naive(self, N = 1000, q = None):
+            if not q:
+                q = self.q
+            samples = [q.pdf(x) for x in np.random.uniform(self.a, self.b, N)]
+            return samples
+
+        def AcceptanceRejection(self, N= 1000, p = None, q = None, C = None):
+            if not q:
+                q = self.q
+            if not p:
+                p = self.p
+
+            if not C:
+                y = np.random.uniform(self.a, self.b, N)
+                C = max(p.pdf(y)/q.pdf(y))
+
+            while len(X) < N:
+                x = q.rvs(loc = self.mu, scale=self.sigma)
+                u = np.random.uniform(0,1)
+                if u <= p.pdf(x)/(C*q.pdf(x)):
+                    X.append(x)
+            return X
+
+    def Metropolis(self, N = 1000, q = None, p = None, x0 = None):
+        if not q:
+            q = self.q
+        if not p:
+            p = self.p
+        if not x0:
+            x0 = q.rvs()
+        X = [x0]
+
+        while len(X) < N:
+            x = X[-1]
+            y = q.pdf(x) + q.rvs()
+            u = np.random.uniform(0,1)
+            alpha = min(1,p.pdf(y)/p.pdf(x))
+        if u <= alpha:
+            X.append(y)
+        else:
+            X.append(x)
+        return X
+#
+    def MetropolisHastings(self, N = 1000, q = None, p = None, x0 = None):
+        if not q:
+            q = self.q
+        if not p:
+            p = self.p
+        if not x0:
+            x0 = q.rvs()
+        X = [x0]
+        while len(X) < N:
+            x = X[-1]
+            y = q.pdf(x) + q.rvs()
+            u = np.random.uniform(0,1)
+            alpha = min(1,(p.pdf(y)*q.pdf(x-y))/(p.pdf(x)*q.pdf(y-x)))
+            if u <= alpha:
+                X.append(y)
+            else:
+                X.append(x)
+        return X
+
+
+#     def Gibbs(self, f = None):
